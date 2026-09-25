@@ -5,7 +5,7 @@ import { api } from '../api/client.js'
 import { MODULES } from '../config/modules.js'
 
 export default function Dashboard() {
-  const { user, logout, isAdmin, can, accessLoading, parentEleveIds } = useAuth()
+  const { user, logout, isAdmin, can, accessLoading, parentEleveIds, chauffeurId, scopeOf } = useAuth()
   const [status, setStatus] = useState('Verification de l\'API...')
   const [widgets, setWidgets] = useState(null)
   const [notifCount, setNotifCount] = useState(0)
@@ -56,9 +56,14 @@ export default function Dashboard() {
         setMyChildren(eleves.data || [])
       }
 
-      if (notifications) {
-        const nonLues = (notifications.data || []).filter((n) => n.statut !== 'lue').length
-        setNotifCount(nonLues)
+      // Nombre de notifications non lues de l'utilisateur (lecture individuelle).
+      try {
+        const mine = await api.get('/notifications-moi.php')
+        setNotifCount(mine.non_lues || 0)
+      } catch {
+        if (notifications) {
+          setNotifCount((notifications.data || []).filter((n) => n.statut !== 'lue').length)
+        }
       }
     }
     loadWidgets()
@@ -125,6 +130,20 @@ export default function Dashboard() {
         </div>
       )}
 
+      {!accessLoading && (chauffeurId || (parentEleveIds && parentEleveIds.length > 0)) && (
+        <div className="module-links ma-raccourcis">
+          {chauffeurId && (
+            <Link to="/mon-activite" className="module-link ma-raccourci">Mon activite aujourd'hui</Link>
+          )}
+          {chauffeurId && (
+            <Link to={`/chauffeurs/${chauffeurId}`} className="module-link ma-raccourci">Mon dossier (permis, contrat, alertes)</Link>
+          )}
+          {parentEleveIds && parentEleveIds.length > 0 && (
+            <Link to="/suivi-enfants" className="module-link ma-raccourci">Suivi de mes enfants</Link>
+          )}
+        </div>
+      )}
+
       <h2>Modules</h2>
       {accessLoading ? (
         <p>Chargement des droits...</p>
@@ -153,6 +172,46 @@ export default function Dashboard() {
           {isAdmin && (
             <Link to="/modules-ecole" className="module-link">
               Modules par ecole
+            </Link>
+          )}
+          {can('chauffeurs', 'can_read') && ['GLOBAL', 'SCHOOL'].includes(scopeOf('chauffeurs')) && (
+            <Link to="/chauffeurs" className="module-link">
+              Chauffeurs
+            </Link>
+          )}
+          {can('incidents', 'can_read') && ['GLOBAL', 'SCHOOL'].includes(scopeOf('incidents')) && (
+            <Link to="/incidents" className="module-link">
+              Incidents et accidents
+            </Link>
+          )}
+          {(can('chauffeur_documents', 'can_read') || can('incidents', 'can_edit')) && ['GLOBAL', 'SCHOOL'].includes(scopeOf('chauffeurs')) && (
+            <Link to="/alertes" className="module-link">
+              Alertes
+            </Link>
+          )}
+          {can('reporting', 'can_read') && ['GLOBAL', 'SCHOOL'].includes(scopeOf('reporting')) && (
+            <Link to="/reporting" className="module-link">
+              Reporting
+            </Link>
+          )}
+          {can('echeances_transport', 'can_read') && ['GLOBAL', 'SCHOOL'].includes(scopeOf('echeances_transport')) && (
+            <Link to="/suivi-paiements" className="module-link">
+              Suivi des paiements transport
+            </Link>
+          )}
+          {can('chauffeur_contracts', 'can_read') && ['GLOBAL', 'SCHOOL'].includes(scopeOf('chauffeur_contracts')) && (
+            <Link to="/remunerations" className="module-link">
+              Remunerations chauffeurs
+            </Link>
+          )}
+          {can('imports', 'can_create') && (
+            <Link to="/imports" className="module-link">
+              Import du suivi ENKO
+            </Link>
+          )}
+          {can('contract_templates', 'can_read') && (
+            <Link to="/modeles-contrat" className="module-link">
+              Modeles de contrat
             </Link>
           )}
           {can('trajets', 'can_read') && (
