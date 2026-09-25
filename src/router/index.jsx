@@ -17,6 +17,20 @@ import Parents from '../pages/Parents.jsx'
 import JournalActivite from '../pages/JournalActivite.jsx'
 import ModulesEcole from '../pages/ModulesEcole.jsx'
 import NotFound from '../pages/NotFound.jsx'
+import MonActivite from '../pages/MonActivite.jsx'
+import SuiviEnfants from '../pages/SuiviEnfants.jsx'
+import Chauffeurs from '../pages/Chauffeurs.jsx'
+import ChauffeurFicheComplete from '../pages/ChauffeurFicheComplete.jsx'
+import Incidents from '../pages/Incidents.jsx'
+import IncidentNouveau from '../pages/IncidentNouveau.jsx'
+import IncidentDetail from '../pages/IncidentDetail.jsx'
+import ModelesContrat from '../pages/ModelesContrat.jsx'
+import Alertes from '../pages/Alertes.jsx'
+import Reporting from '../pages/Reporting.jsx'
+import VehiculeFiche from '../pages/VehiculeFiche.jsx'
+import SuiviPaiements from '../pages/SuiviPaiements.jsx'
+import Imports from '../pages/Imports.jsx'
+import Remunerations from '../pages/Remunerations.jsx'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -163,6 +177,20 @@ export function AppRouter() {
           </AdminRoute>
         }
       />
+      <Route path="/mon-activite" element={<PrivateRoute><MonActivite /></PrivateRoute>} />
+      <Route path="/suivi-enfants" element={<PrivateRoute><SuiviEnfants /></PrivateRoute>} />
+      <Route path="/chauffeurs" element={<PrivateRoute><Chauffeurs /></PrivateRoute>} />
+      <Route path="/chauffeurs/:id" element={<PrivateRoute><ChauffeurFicheComplete /></PrivateRoute>} />
+      <Route path="/incidents" element={<PrivateRoute><Incidents /></PrivateRoute>} />
+      <Route path="/incidents/nouveau" element={<PrivateRoute><IncidentNouveau /></PrivateRoute>} />
+      <Route path="/incidents/:id" element={<PrivateRoute><IncidentDetail /></PrivateRoute>} />
+      <Route path="/modeles-contrat" element={<PrivateRoute><ModelesContrat /></PrivateRoute>} />
+      <Route path="/alertes" element={<PrivateRoute><Alertes /></PrivateRoute>} />
+      <Route path="/reporting" element={<PrivateRoute><Reporting /></PrivateRoute>} />
+      <Route path="/vehicules/:id" element={<PrivateRoute><VehiculeFiche /></PrivateRoute>} />
+      <Route path="/suivi-paiements" element={<PrivateRoute><SuiviPaiements /></PrivateRoute>} />
+      <Route path="/imports" element={<PrivateRoute><Imports /></PrivateRoute>} />
+      <Route path="/remunerations" element={<PrivateRoute><Remunerations /></PrivateRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
