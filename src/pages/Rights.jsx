@@ -23,7 +23,11 @@ export default function Rights() {
   const [error, setError] = useState(null)
   const [savingUserId, setSavingUserId] = useState(null)
   const [savingRoleId, setSavingRoleId] = useState(null)
-  const [newUser, setNewUser] = useState({ name: '', email: '' })
+  const emptyNewUser = { name: '', email: '', telephone: '', password: '', role_key: '' }
+  const [newUser, setNewUser] = useState(emptyNewUser)
+  // Roles attribues aux utilisateurs (roles.php) : { [userId]: ['parent', ...] }
+  const [userRoles, setUserRoles] = useState({})
+  const [rolesAvailable, setRolesAvailable] = useState(true)
 
   async function loadMatrix() {
     setLoading(true)
@@ -35,6 +39,17 @@ export default function Rights() {
       setGrid(data.grid || {})
       setRoles(data.roles || [])
       setRoleGrid(data.roleGrid || {})
+      try {
+        const r = await api.get('/roles.php')
+        const map = {}
+        ;(r.user_roles || []).forEach((ur) => {
+          map[ur.user_id] = [...(map[ur.user_id] || []), ur.role_key]
+        })
+        setUserRoles(map)
+        setRolesAvailable(true)
+      } catch {
+        setRolesAvailable(false)
+      }
     } catch (e) {
       setError(e.message)
     } finally {
@@ -134,13 +149,36 @@ export default function Rights() {
     }
   }
 
+  async function changeUserRole(userId, roleKey) {
+    setError(null)
+    setSavingUserId(userId)
+    try {
+      for (const current of userRoles[userId] || []) {
+        if (current !== roleKey) {
+          await api.del('/roles.php', { user_id: userId, role_key: current })
+        }
+      }
+      if (roleKey) {
+        await api.post('/roles.php', { user_id: userId, role_key: roleKey })
+      }
+      await loadMatrix()
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setSavingUserId(null)
+    }
+  }
+
   async function createUser(e) {
     e.preventDefault()
-    if (!newUser.name.trim() || !newUser.email.trim()) return
+    if (!newUser.name.trim() || (!newUser.email.trim() && !newUser.telephone.trim())) {
+      setError('Nom et e-mail ou telephone requis')
+      return
+    }
     setError(null)
     try {
       await api.post('/users.php', newUser)
-      setNewUser({ name: '', email: '' })
+      setNewUser(emptyNewUser)
       await loadMatrix()
     } catch (e) {
       setError(e.message)
@@ -238,7 +276,23 @@ export default function Rights() {
               <tr key={u.id} className={savingUserId === u.id ? 'row-saving' : ''}>
                 <td className="col-user">
                   <div className="user-name">{u.name}</div>
-                  <div className="email">{u.email}</div>
+                  <div className="email">{u.email || u.telephone || ''}</div>
+                  {rolesAvailable && (
+                    <select
+                      className="user-role-select"
+                      value={(userRoles[u.id] || [])[0] || ''}
+                      disabled={savingUserId === u.id}
+                      onChange={(e) => changeUserRole(u.id, e.target.value)}
+                      title="Role de l'utilisateur (determine son perimetre de donnees)"
+                    >
+                      <option value="">-- Aucun role --</option>
+                      {roles.map((r) => (
+                        <option key={r.id} value={r.role_key}>
+                          {r.role_label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </td>
                 {modules.map((mod) => (
                   <Fragment key={mod.id}>
@@ -284,7 +338,7 @@ export default function Rights() {
       </div>
 
       <form onSubmit={createUser} className="add-user-bar">
-        <span className="add-user-label">Utilisateur a ajouter (exception) :</span>
+        <span className="add-user-label">Nouvel utilisateur :</span>
         <input
           type="text"
           placeholder="Nom"
@@ -293,10 +347,30 @@ export default function Rights() {
         />
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email (facultatif si telephone)"
           value={newUser.email}
           onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
         />
+        <input
+          type="tel"
+          placeholder="Telephone"
+          value={newUser.telephone}
+          onChange={(e) => setNewUser({ ...newUser, telephone: e.target.value })}
+        />
+        <input
+          type="password"
+          placeholder="Mot de passe initial (8 car. min.)"
+          value={newUser.password}
+          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+        />
+        <select value={newUser.role_key} onChange={(e) => setNewUser({ ...newUser, role_key: e.target.value })}>
+          <option value="">-- Role --</option>
+          {roles.map((r) => (
+            <option key={r.id} value={r.role_key}>
+              {r.role_label}
+            </option>
+          ))}
+        </select>
         <button type="submit">Ajouter</button>
       </form>
     </div>

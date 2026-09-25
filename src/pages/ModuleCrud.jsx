@@ -156,7 +156,7 @@ export default function ModuleCrud() {
   }
 
   const showForm = editingId ? canEdit : canCreate
-  const showActionsColumn = canEdit || canDelete
+  const showActionsColumn = canEdit || canDelete || ['eleves', 'circuits', 'vehicules'].includes(moduleKey)
 
   return (
     <div className="page">
@@ -230,6 +230,11 @@ export default function ModuleCrud() {
                     <td className="module-table-actions">
                       {moduleKey === 'eleves' && (
                         <Link to={`/eleves/${row.id}`} className="module-table-link">
+                          Voir la fiche
+                        </Link>
+                      )}
+                      {moduleKey === 'vehicules' && (
+                        <Link to={`/vehicules/${row.id}`} className="module-table-link">
                           Voir la fiche
                         </Link>
                       )}
