@@ -56,7 +56,10 @@ export const MODULES = [
     domain: 'transport',
     fields: [
       { key: 'immatriculation', label: 'Immatriculation', type: 'text' },
+      { key: 'marque', label: 'Marque', type: 'text' },
       { key: 'modele', label: 'Modele', type: 'text' },
+      { key: 'annee', label: 'Annee', type: 'number' },
+      { key: 'type_vehicule', label: 'Type (Van 10 pax...)', type: 'text' },
       { key: 'capacite', label: 'Capacite', type: 'number' },
       { key: 'chauffeur', label: 'Chauffeur', type: 'text' },
       { key: 'statut', label: 'Statut', type: 'text' },
