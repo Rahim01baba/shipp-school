@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
 
@@ -29,7 +29,9 @@ function loadJsQR() {
 
 export default function Scanner() {
   const { can, accessLoading } = useAuth()
-  const [method, setMethod] = useState('recherche')
+  const [searchParams] = useSearchParams()
+  const trajetParam = searchParams.get('trajet_id')
+  const [method, setMethod] = useState(trajetParam ? 'camera' : 'recherche')
   const [eleves, setEleves] = useState([])
   const [abonnements, setAbonnements] = useState([])
   const [scans, setScans] = useState([])
@@ -175,10 +177,14 @@ export default function Scanner() {
           eleve_id: selectedEleve.id,
           type: scanType,
           methode: method,
+          ...(trajetParam ? { trajet_id: Number(trajetParam) } : {}),
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Erreur lors de la validation du scan'); setWarning(data.abonnement_warning === 'abonnement_suspendu' ? 'Attention : abonnement suspendu (scan tout de meme enregistre).' : null)
+      if (!res.ok) throw new Error(data.message || 'Erreur lors de la validation du scan'); const avert = []
+      if (data.abonnement_warning) avert.push(`abonnement ${data.abonnement_warning.replace('abonnement_', '')}`)
+      if ((data.alertes || []).includes('eleve_non_affecte')) avert.push('eleve non affecte a ce circuit')
+      setWarning(avert.length ? `Scan enregistre. Attention : ${avert.join(', ')}.` : null)
       setSelectedEleve(null)
       setCodeValue('')
       setSearchTerm('')
@@ -216,6 +222,7 @@ export default function Scanner() {
         <Link to="/">&larr; Tableau de bord</Link>
       </p>
       <h1>Scanner</h1>
+      {trajetParam && <p><Link to="/mon-activite">&larr; Retour a mon trajet</Link></p>}
       {error && <p className="error-banner">{error}</p>}{warning && <p className="scanner-abo-warning">{warning}</p>}
 
       <div className="scanner-tabs">

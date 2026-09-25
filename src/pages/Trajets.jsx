@@ -13,7 +13,9 @@ const STATUT_LABELS = {
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export default function Trajets() {
-  const { can, accessLoading } = useAuth()
+  const { can, accessLoading, scopeOf } = useAuth()
+  const [gen, setGen] = useState({ date: new Date().toISOString().slice(0, 10), sens: 'les_deux' })
+  const [genInfo, setGenInfo] = useState(null)
   const [circuits, setCircuits] = useState([])
   const [etapes, setEtapes] = useState([])
   const [trajets, setTrajets] = useState([])
@@ -82,6 +84,19 @@ export default function Trajets() {
     }
   }
 
+  async function generer(e) {
+    e.preventDefault()
+    setError(null)
+    setGenInfo(null)
+    try {
+      const res = await api.post('/trajets-generer.php', gen)
+      setGenInfo(`${res.crees.length} trajet(s) cree(s), ${res.deja_existants} deja existant(s).`)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   async function doAction(trajetId, action) {
     setActing(trajetId)
     setError(null)
@@ -112,6 +127,23 @@ export default function Trajets() {
       </p>
       <h1>Trajets</h1>
       {error && <p className="error-banner">{error}</p>}
+
+      {canCreate && ['GLOBAL', 'SCHOOL'].includes(scopeOf('trajets')) && (
+        <form onSubmit={generer} className="module-form">
+          <h2>Generer les trajets d'une journee</h2>
+          <label className="module-form-field"><span>Date</span><input type="date" value={gen.date} onChange={(e) => setGen({ ...gen, date: e.target.value })} /></label>
+          <label className="module-form-field">
+            <span>Sens</span>
+            <select value={gen.sens} onChange={(e) => setGen({ ...gen, sens: e.target.value })}>
+              <option value="les_deux">Aller et retour</option>
+              <option value="aller">Aller</option>
+              <option value="retour">Retour</option>
+            </select>
+          </label>
+          <div className="module-form-actions"><button type="submit" className="btn-transport">Generer pour tous les circuits actifs</button></div>
+          {genInfo && <p className="ma-info">{genInfo}</p>}
+        </form>
+      )}
 
       {canCreate && (
         <form onSubmit={createTrajet} className="module-form">
@@ -151,6 +183,7 @@ export default function Trajets() {
               <tr>
                 <th>Circuit</th>
                 <th>Date</th>
+                <th>Sens</th>
                 <th>Statut</th>
                 <th>Etape courante</th>
                 {canEdit && <th>Actions</th>}
@@ -161,6 +194,7 @@ export default function Trajets() {
                 <tr key={t.id}>
                   <td>{circuitNom(t.circuit_id)}</td>
                   <td>{t.date_trajet}</td>
+                  <td>{t.sens || '-'}</td>
                   <td>{STATUT_LABELS[t.statut] || t.statut}</td>
                   <td>{etapeNom(t.etape_courante_id)}</td>
                   {canEdit && (
@@ -191,7 +225,7 @@ export default function Trajets() {
               ))}
               {trajets.length === 0 && (
                 <tr>
-                  <td colSpan={canEdit ? 5 : 4}>Aucun trajet.</td>
+                  <td colSpan={canEdit ? 6 : 5}>Aucun trajet.</td>
                 </tr>
               )}
             </tbody>
