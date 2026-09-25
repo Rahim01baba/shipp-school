@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import ContactsEleve from './ContactsEleve.jsx'
 
 const ABONNEMENT_LABELS = {
   transport: 'Transport',
@@ -191,6 +192,8 @@ export default function EleveDetail() {
             </div>
           ))}
         </div>
+
+        <ContactsEleve eleveId={id} />
       </div>
     </div>
   )
