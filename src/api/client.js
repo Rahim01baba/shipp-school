@@ -28,7 +28,9 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const message = data?.message || `Erreur API (${res.status})`
-    throw new Error(message)
+    const err = new Error(message)
+    err.status = res.status
+    throw err
   }
 
   return data
