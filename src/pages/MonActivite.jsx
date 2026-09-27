@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client.js'
+import CourseGps from '../components/CourseGps.jsx'
 
 // Ecran chauffeur (mobile d'abord) : « Mon activite aujourd'hui ».
 // Toutes les donnees viennent de /chauffeur-jour.php ; chaque action cree un
@@ -151,17 +152,22 @@ export default function MonActivite() {
               </div>
             </div>
 
+            {data.gps && ['planifie', 'en_cours'].includes(t.statut) && (
+              <CourseGps trajet={t} chauffeur={data.chauffeur} vehiculeJour={data.vehicule} config={data.gps} onChange={load} />
+            )}
             <div className="ma-boutons">
-              {t.statut === 'planifie' && (
+              {t.statut === 'planifie' && !data.gps && (
                 <button type="button" className="btn-transport ma-big" disabled={!!busy} onClick={() => avancer(t, 'demarrer')}>Demarrer le trajet</button>
               )}
               {enCours && (
                 <>
                   <Link className="module-link" to={`/scanner?trajet_id=${t.id}`}>Scanner un QR code</Link>
                   <button type="button" className="btn-transport" disabled={!!busy} onClick={() => avancer(t, 'avancer')}>Arret suivant</button>
-                  <button type="button" disabled={!!busy} onClick={() => {
-                    if (window.confirm('Terminer le trajet ? Les eleves attendus non scannes seront marques absents.')) avancer(t, 'cloturer')
-                  }}>Fin de trajet</button>
+                  {!data.gps && (
+                    <button type="button" disabled={!!busy} onClick={() => {
+                      if (window.confirm('Terminer le trajet ? Les eleves attendus non scannes seront marques absents.')) avancer(t, 'cloturer')
+                    }}>Fin de trajet</button>
+                  )}
                 </>
               )}
               <Link className="module-link" to={`/incidents/nouveau?trajet_id=${t.id}`}>Signaler un incident</Link>
