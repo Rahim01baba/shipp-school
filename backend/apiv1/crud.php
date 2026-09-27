@@ -54,6 +54,11 @@ $modulesConfig = [
 'affectations_chauffeur' => ['user_id', 'circuit_id'],
 'couvertures_chauffeur' => ['chauffeur_remplacant_id', 'circuit_id', 'eleve_id', 'date_debut', 'date_fin', 'motif'],
 ];
+// Position GPS des arrets (migration 006), seulement si les colonnes existent.
+if (authz_column_exists($pdo, 'etapes', 'latitude')) {
+$modulesConfig['etapes'][] = 'latitude';
+$modulesConfig['etapes'][] = 'longitude';
+}
 
 $tableMap = [
 'eleves' => 'eleves',

@@ -13,6 +13,7 @@ $authUser = require_auth();
 $pdo = shipp_db();
 require __DIR__ . '/lib/authz.php';
 require __DIR__ . '/lib/transport.php';
+require __DIR__ . '/lib/gps.php';
 $ctx = authz_load($pdo, (int) $authUser['sub']);
 authz_require($ctx, 'trajets', 'can_read');
 
@@ -52,7 +53,9 @@ if (!empty($chauffeur['user_id'])) {
     $circuitIds = array_map('intval', array_column($s->fetchAll(PDO::FETCH_ASSOC), 'circuit_id'));
 }
 $params = [$date, $chauffeurId];
-$sql = "SELECT t.*, ci.nom AS circuit_nom FROM trajets t JOIN circuits ci ON ci.id = t.circuit_id
+$gpsOk = gps_disponible($pdo);
+$horaires = authz_column_exists($pdo, 'circuits', 'heure_depart') ? ', ci.heure_depart AS circuit_heure_depart, ci.heure_retour AS circuit_heure_retour' : '';
+$sql = "SELECT t.*, ci.nom AS circuit_nom$horaires FROM trajets t JOIN circuits ci ON ci.id = t.circuit_id
         WHERE t.date_trajet = ? AND (t.chauffeur_id = ?";
 if ($circuitIds) {
     $sql .= ' OR (t.chauffeur_id IS NULL AND t.circuit_id IN (' . implode(',', array_fill(0, count($circuitIds), '?')) . '))';
@@ -64,9 +67,11 @@ $t->execute($params);
 
 $trajets = [];
 foreach ($t->fetchAll(PDO::FETCH_ASSOC) as $trajet) {
-    $et = $pdo->prepare('SELECT id, nom, ordre, heure_estimee FROM etapes WHERE circuit_id = ? AND statut = \'active\' ORDER BY ordre');
-    $et->execute([(int) $trajet['circuit_id']]);
-    $arrets = $et->fetchAll(PDO::FETCH_ASSOC);
+    // Arrets dans l'ordre de parcours (retour : ordre inverse), avec leur position GPS si connue.
+    $arrets = array_map(function ($a) {
+        unset($a['statut']);
+        return $a;
+    }, circuit_etapes($pdo, (int) $trajet['circuit_id'], $trajet['sens'] ?? null));
     $pa = $pdo->prepare('SELECT etape_id, heure_reelle, ecart_minutes FROM trajet_passages WHERE trajet_id = ?');
     $pa->execute([(int) $trajet['id']]);
     $passages = [];
@@ -104,7 +109,13 @@ foreach ($t->fetchAll(PDO::FETCH_ASSOC) as $trajet) {
         $v->execute([(int) $trajet['vehicle_id']]);
         $veh = $v->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+    // Depart prevu : horaire du circuit (matin / soir), sinon heure du premier arret (matin).
+    $departPrevu = ($trajet['sens'] ?? null) === 'retour' ? ($trajet['circuit_heure_retour'] ?? null) : ($trajet['circuit_heure_depart'] ?? null);
+    if (!$departPrevu && ($trajet['sens'] ?? null) !== 'retour' && $arrets) {
+        $departPrevu = $arrets[0]['heure_estimee'];
+    }
     $trajets[] = [
+        'depart_prevu' => $departPrevu ? substr($departPrevu, 0, 5) : null,
         'id' => (int) $trajet['id'], 'circuit_id' => (int) $trajet['circuit_id'], 'circuit_nom' => $trajet['circuit_nom'],
         'sens' => $trajet['sens'], 'statut' => $trajet['statut'], 'etape_courante_id' => $trajet['etape_courante_id'] ? (int) $trajet['etape_courante_id'] : null,
         'heure_debut' => $trajet['heure_debut'], 'heure_fin' => $trajet['heure_fin'], 'vehicule' => $veh ?: $vehicule,
@@ -112,4 +123,9 @@ foreach ($t->fetchAll(PDO::FETCH_ASSOC) as $trajet) {
     ];
 }
 
-echo json_encode(['chauffeur' => $chauffeur, 'vehicule' => $vehicule, 'date' => $date, 'trajets' => $trajets]);
+$gps = null;
+if ($gpsOk) {
+    $p = gps_params($pdo);
+    $gps = ['intervalle_secondes' => $p['intervalle'], 'precision_faible_metres' => $p['precision_faible'], 'rayon_arret_metres' => $p['rayon_arret']];
+}
+echo json_encode(['chauffeur' => $chauffeur, 'vehicule' => $vehicule, 'date' => $date, 'trajets' => $trajets, 'gps' => $gps]);
