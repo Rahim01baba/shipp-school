@@ -3,7 +3,7 @@ import { api, setToken } from '../api/client.js'
 
 const AuthContext = createContext(null)
 
-const emptyAccess = { is_admin: false, permissions: {}, parent_eleve_ids: [], chauffeur_circuit_ids: [] }
+const emptyAccess = { is_admin: false, permissions: {}, parent_eleve_ids: [], chauffeur_circuit_ids: [], roles: [], scope: 'NONE', chauffeur_id: null }
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -20,6 +20,9 @@ export function AuthProvider({ children }) {
           is_admin: !!data.is_admin,
           permissions: data.permissions || {},
           parent_eleve_ids: data.parent_eleve_ids || [], chauffeur_circuit_ids: data.chauffeur_circuit_ids || [],
+          roles: data.roles || [],
+          scope: data.scope || 'NONE',
+          chauffeur_id: data.chauffeur_id || null,
         })
       )
       .catch(() => setAccess(emptyAccess))
@@ -59,6 +62,12 @@ export function AuthProvider({ children }) {
     return !!(perm && perm[action])
   }
 
+  // Perimetre de donnees du module (GLOBAL, SCHOOL, ASSIGNED_ROUTE, CHILDREN, OWN, NONE).
+  function scopeOf(moduleKey) {
+    if (access.is_admin) return 'GLOBAL'
+    return access.permissions[moduleKey]?.scope || 'NONE'
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -69,6 +78,10 @@ export function AuthProvider({ children }) {
         isAdmin: access.is_admin,
         permissions: access.permissions,
         parentEleveIds: access.parent_eleve_ids, chauffeurCircuitIds: access.chauffeur_circuit_ids,
+        roles: access.roles,
+        scope: access.scope,
+        chauffeurId: access.chauffeur_id,
+        scopeOf,
         accessLoading,
         can,
       }}

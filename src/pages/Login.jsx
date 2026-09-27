@@ -39,8 +39,8 @@ export default function Login() {
       <form onSubmit={submit} className="login-form">
         {error && <p className="error-banner">{error}</p>}
         <label className="module-form-field">
-          <span>Email</span>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <span>Email ou telephone</span>
+          <input type="text" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label className="module-form-field">
           <span>Mot de passe</span>

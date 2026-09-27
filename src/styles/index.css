@@ -622,3 +622,147 @@ button.btn-cantine:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ===== V5 lot 2 : ecrans terrain (mobile d'abord) ===== */
+.ma-muted { color: #6b7280; font-size: 0.9em; }
+.ma-info { background: #ecfdf5; color: #065f46; padding: 0.6rem 0.9rem; border-radius: 6px; margin-bottom: 1rem; }
+.ma-page, .se-page { max-width: 760px; margin: 0 auto; }
+.ma-header { display: flex; justify-content: space-between; gap: 1rem; background: #fff; border-radius: 10px; padding: 0.9rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+.ma-vehicule { text-align: right; }
+.ma-trajet { background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1.25rem; }
+.ma-trajet h2 { margin: 0 0 0.2rem; font-size: 1.15rem; }
+.ma-trajet-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.ma-compteurs { display: flex; gap: 0.75rem; font-size: 0.9rem; flex-wrap: wrap; }
+.ma-boutons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.9rem 0; }
+.ma-boutons button, .ma-actions button { min-height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; font-size: 1rem; }
+.ma-big { font-size: 1.1rem !important; width: 100%; }
+.ma-arrets { list-style: none; padding: 0; margin: 0; border-left: 3px solid #dbeafe; }
+.ma-arret { padding: 0.5rem 0 0.5rem 0.9rem; position: relative; }
+.ma-arret::before { content: ''; position: absolute; left: -8px; top: 0.85rem; width: 12px; height: 12px; border-radius: 50%; background: #bfdbfe; }
+.ma-arret-courant::before { background: #2563eb; box-shadow: 0 0 0 4px #dbeafe; }
+.ma-arret-courant .ma-arret-nom { color: #1d4ed8; }
+.ma-arret-head { display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.ma-arret-nom { font-weight: 600; }
+.ma-eleves { list-style: none; padding: 0; margin: 0.4rem 0 0; }
+.ma-eleve { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; border-radius: 8px; background: #f9fafb; margin-bottom: 0.35rem; }
+.ma-eleve-embarque { background: #eff6ff; }
+.ma-eleve-depose { background: #ecfdf5; }
+.ma-eleve-absent { background: #fef2f2; }
+.ma-eleve-nom { font-weight: 600; }
+.ma-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+.ma-badge-warn { margin-left: 0.4rem; font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 0.1rem 0.4rem; border-radius: 4px; }
+.ma-raccourcis { margin-bottom: 1rem; }
+.ma-raccourci { background: #2563eb; color: #fff !important; font-weight: 600; }
+
+.se-carte { background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1.25rem; }
+.se-carte h2 { margin: 0; }
+.se-carte h3 { margin: 1rem 0 0.4rem; font-size: 1rem; }
+.se-carte p { margin: 0.2rem 0; }
+.se-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.se-trajet { border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.6rem; }
+.se-trajet-head { display: flex; justify-content: space-between; align-items: center; }
+.se-statut { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.se-attendu { background: #f3f4f6; color: #374151; }
+.se-embarque { background: #dbeafe; color: #1e40af; }
+.se-depose { background: #d1fae5; color: #065f46; }
+.se-absent { background: #fee2e2; color: #991b1b; }
+.se-etapes { list-style: none; padding: 0; margin: 0.6rem 0; }
+.se-etapes li { padding: 0.2rem 0 0.2rem 1.4rem; position: relative; color: #6b7280; }
+.se-etapes li::before { content: '○'; position: absolute; left: 0; }
+.se-etapes li.fait { color: #111827; }
+.se-etapes li.fait::before { content: '✓'; color: #059669; }
+.se-etapes li.alerte { color: #b91c1c; }
+.se-etapes li.alerte::before { content: '!'; font-weight: 700; }
+.se-historique summary { cursor: pointer; margin-top: 0.6rem; }
+
+.ch-filtres { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.ch-filtres input, .ch-filtres select, .ch-filtres button { padding: 0.5rem 0.7rem; border-radius: 6px; border: 1px solid #d1d5db; }
+.ch-check { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.user-role-select { margin-top: 0.3rem; font-size: 0.8rem; max-width: 160px; }
+
+/* Petits ecrans : toutes les pages deviennent utilisables sur telephone */
+@media (max-width: 640px) {
+  .page { padding: 1rem; }
+  .se-grille { grid-template-columns: 1fr; }
+  .ma-header { flex-direction: column; }
+  .ma-vehicule { text-align: left; }
+  .ma-eleve { flex-direction: column; align-items: stretch; }
+  .ma-actions button { flex: 1; }
+  .module-table-wrap { overflow-x: auto; }
+  .module-form { max-width: 100%; }
+  .dashboard-header { flex-direction: column; gap: 0.75rem; }
+}
+
+/* ---------- Lot 3 : incidents, dossier chauffeur ---------- */
+.inc-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; background: #e5e7eb; color: #374151; }
+.inc-cat-accident, .inc-grav-critique, .dc-etat-expire, .dc-etat-refuse { background: #fee2e2; color: #991b1b; }
+.inc-grav-elevee, .dc-etat-expire_bientot, .dc-etat-a_verifier, .inc-st-ouvert { background: #fef3c7; color: #92400e; }
+.inc-st-en_cours { background: #dbeafe; color: #1e40af; }
+.inc-st-resolu, .inc-st-clos, .dc-etat-valide { background: #d1fae5; color: #065f46; }
+.inc-section { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.inc-section h2 { margin-top: 0; font-size: 1.1rem; }
+.inc-dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; margin: 0; }
+.inc-dl dt { color: #6b7280; }
+.inc-dl dd { margin: 0; }
+.inc-texte { white-space: pre-wrap; background: #f9fafb; padding: 0.6rem; border-radius: 6px; }
+.inc-fieldset { border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.8rem; margin: 0.8rem 0; }
+.inc-eleve-ligne { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.3rem 0; border-bottom: 1px solid #f3f4f6; }
+.inc-eleve-ligne > span { flex: 1 1 10rem; }
+.inc-lien { background: none; border: none; color: #2563eb; cursor: pointer; padding: 0 0.3rem; text-decoration: underline; font: inherit; }
+.inc-upload { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; cursor: pointer; }
+.inc-upload input[type='file'] { max-width: 14rem; }
+.inc-fichiers ul { padding-left: 1.1rem; }
+.inc-historique { font-size: 0.9rem; padding-left: 1.1rem; }
+.inc-filtre-date { display: inline-flex; align-items: center; gap: 0.3rem; }
+.dc-remplace td { color: #9ca3af; }
+.dc-contrat { white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; padding: 0.8rem; border-radius: 6px; font-family: inherit; }
+.dc-alertes { list-style: none; padding: 0; }
+.dc-alerte { padding: 0.5rem 0.7rem; border-left: 4px solid #9ca3af; background: #f9fafb; margin-bottom: 0.4rem; border-radius: 4px; }
+.dc-alerte-critique { border-color: #dc2626; background: #fef2f2; }
+.dc-alerte-alerte { border-color: #d97706; background: #fffbeb; }
+@media (max-width: 640px) {
+  .inc-dl { grid-template-columns: 1fr; }
+  .inc-dl dt { margin-top: 0.4rem; }
+}
+
+/* ---------- Lot 4 : reporting ---------- */
+.rep-periode { color: #374151; }
+.rep-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin: 0.5rem 0; }
+.rep-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.6rem; margin: 1rem 0; }
+.rep-kpi { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; padding: 0.8rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; cursor: pointer; text-align: left; font: inherit; }
+.rep-kpi:disabled { cursor: default; }
+.rep-kpi:not(:disabled):hover { border-color: #2563eb; }
+.rep-kpi-val { font-size: 1.5rem; font-weight: 700; }
+.rep-kpi-lib { font-size: 0.85rem; color: #6b7280; }
+.rep-cliquable { cursor: pointer; }
+.rep-cliquable:hover td { background: #eff6ff; }
+.rep-table td { white-space: nowrap; }
+.rep-detail-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+@media print {
+  .rep-noprint, .rep-actions { display: none !important; }
+  .rep-page { padding: 0; }
+  .rep-kpi { break-inside: avoid; }
+}
+
+/* ---------- Lot 5 : contacts, paiements mensuels, imports ---------- */
+.ec-liste { list-style: none; padding: 0; }
+.ec-liste li { padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
+.sp-wrap { overflow-x: auto; }
+.sp-table th, .sp-table td { white-space: nowrap; font-size: 0.85rem; }
+.sp-table td:first-child { position: sticky; left: 0; background: #fff; }
+.sp-cell { text-align: center; padding: 0.2rem; }
+.sp-toggles { display: inline-flex; gap: 2px; }
+.sp-toggles button, .sp-arret-btn { font-size: 0.72rem; padding: 0.1rem 0.35rem; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; cursor: pointer; }
+.sp-toggles button.on { background: #2563eb; color: #fff; border-color: #2563eb; }
+.sp-toggles button:disabled { cursor: default; }
+.sp-mini { color: #9ca3af; }
+.sp-shipp { background: #ecfdf5; }
+.sp-enko { background: #fffbeb; }
+.sp-non { background: #fef2f2; }
+.sp-arret { background: #f3f4f6; color: #6b7280; }
+.sp-vide { color: #d1d5db; text-align: center; }
+.sp-total td { font-weight: 600; background: #f9fafb; }
+.sp-total-a_reverser td { color: #92400e; }
+.sp-total-impaye td { color: #991b1b; }
+.imp-erreur td { background: #fef2f2; }
+.imp-insuffisant td { background: #fffbeb; }

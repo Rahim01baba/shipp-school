@@ -1,0 +1,6 @@
+# Secrets et donnees locales : jamais versionnes
+db-config.php
+config.local.php
+apiv1/uploads/
+private/
+__pycache__/
