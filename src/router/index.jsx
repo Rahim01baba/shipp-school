@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import Login from '../pages/Login.jsx'
+import AppShell from '../components/AppShell.jsx'
 import Dashboard from '../pages/Dashboard.jsx'
 import Rights from '../pages/Rights.jsx'
 import ModuleCrud from '../pages/ModuleCrud.jsx'
@@ -38,21 +39,21 @@ function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
   if (loading) {
-    return <div className="page page-center">Chargement...</div>
+    return <div className="ecran-chargement" role="status"><span className="spinner" aria-hidden="true" />Chargement...</div>
   }
-  return user ? children : <Navigate to="/login" state={{ from: location.pathname }} replace />
+  return user ? <AppShell>{children}</AppShell> : <Navigate to="/login" state={{ from: location.pathname }} replace />
 }
 
 function AdminRoute({ children }) {
   const { user, loading, isAdmin, accessLoading } = useAuth()
   const location = useLocation()
   if (loading || accessLoading) {
-    return <div className="page page-center">Chargement...</div>
+    return <div className="ecran-chargement" role="status"><span className="spinner" aria-hidden="true" />Chargement...</div>
   }
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />
   }
-  return isAdmin ? children : <Navigate to="/" replace />
+  return isAdmin ? <AppShell>{children}</AppShell> : <Navigate to="/" replace />
 }
 
 export function AppRouter() {
