@@ -64,6 +64,9 @@ function authz_module_columns(): array
         'echeances_transport' => ['table' => 'echeances_transport', 'eleve' => 'eleve_id', 'ecole' => 'ecole_id'],
         'tarifs' => ['table' => 'tarifs', 'ecole' => 'ecole_id'],
         'imports' => ['table' => 'import_lots', 'ecole' => 'ecole_id'],
+        // Suivi GPS (migration 006) : carte flotte et historique, filtres par trajet.
+        // Volontairement absent des scopes ASSIGNED_ROUTE et CHILDREN.
+        'suivi_gps' => ['table' => 'trajets', 'circuit' => 'circuit_id', 'ecole' => 'ecole_id'],
     ];
 }
 

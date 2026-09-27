@@ -100,3 +100,34 @@ Prérequis : lots P0 à 4 déployés.
 6. Retour arrière : exporter `eleve_contacts`, `vehicle_documents`, `chauffeur_retenues`, `tarifs`, `echeances_transport`, `echeances_historique`, `import_*`, puis `sql/005_enko_flotte_paiements_down.sql`.
 
 Vérifié par `tests/test_lot5.py` (42 tests), avec un fichier Excel fictif reproduisant la structure du suivi ENKO. Le fichier réel a été analysé en recette sans être importé ni versionné.
+
+# Lot GPS — Suivi GPS temps réel de la flotte
+
+Prérequis : lots P0 à 5 déployés.
+
+1. Sauvegarde (export phpMyAdmin + zip de `apiv1/`).
+2. **Migration (sur autorisation explicite)** : `sql/006_suivi_gps.sql`. Strictement additive :
+   - `etapes` : ajout de `latitude` et `longitude` (facultatives) ;
+   - nouvelle table `trajet_positions` (historique GPS, clé unique trajet + heure de mesure) ;
+   - 6 paramètres `gps_*` ;
+   - droit `suivi_gps`, donné à l'admin (global) et au fleet manager (son école).
+3. Code, **après** la migration :
+   - nouveaux fichiers : `lib/gps.php`, `gps-position.php`, `flotte-gps.php`, `circuit-arrets.php` ;
+   - fichiers modifiés : `trajet-avancer.php`, `chauffeur-jour.php`, `crud.php`, `lib/authz.php`.
+   Sans la migration, ce code reste inactif (réponse 503 « Suivi GPS non activé ») et le reste de l'application fonctionne comme avant.
+4. Frontend :
+   - écran chauffeur : DÉMARRER / TERMINER LA COURSE, bandeau GPS ;
+   - pages « Suivi flottes » et historique GPS d'un trajet ;
+   - carte dans la fiche circuit ;
+   - manifeste d'installation (dossier `public/`).
+5. Retour arrière : exporter `trajet_positions` et les coordonnées des arrêts, puis `sql/006_suivi_gps_down.sql`.
+
+Changement de comportement voulu : la course du **soir** (sens retour) parcourt maintenant les arrêts dans l'**ordre inverse** (école → domicile). Aucun retard n'est calculé au retour, car les heures des arrêts sont celles du matin.
+
+Arrière-plan : voir `docs/GPS_ARRIERE_PLAN.md`. En navigateur, le suivi n'est pas garanti écran verrouillé.
+
+Tests :
+
+- `tests/test_gps.py` : 30 tests d'API ;
+- test navigateur : 18 scénarios (chauffeur mobile, 3 véhicules, coupure réseau, GPS refusé, arrière-plan, position ancienne, fin de course, historique, éditeur de circuit) ;
+- non-régression : `test_acces` 34, `test_lot2` 32, `test_lot3` 49, `test_lot4` 28, `test_lot5` 42, avec et sans la migration 006.

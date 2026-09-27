@@ -195,7 +195,10 @@ export default function Trajets() {
                   <td>{circuitNom(t.circuit_id)}</td>
                   <td>{t.date_trajet}</td>
                   <td>{t.sens || '-'}</td>
-                  <td>{STATUT_LABELS[t.statut] || t.statut}</td>
+                  <td>
+                    {STATUT_LABELS[t.statut] || t.statut}
+                    {can('suivi_gps', 'can_read') && ['en_cours', 'termine'].includes(t.statut) && <> · <Link to={`/suivi-flotte/trajet/${t.id}`}>GPS</Link></>}
+                  </td>
                   <td>{etapeNom(t.etape_courante_id)}</td>
                   {canEdit && (
                     <td className="module-table-actions">

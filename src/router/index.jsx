@@ -31,6 +31,8 @@ import VehiculeFiche from '../pages/VehiculeFiche.jsx'
 import SuiviPaiements from '../pages/SuiviPaiements.jsx'
 import Imports from '../pages/Imports.jsx'
 import Remunerations from '../pages/Remunerations.jsx'
+import SuiviFlotte from '../pages/SuiviFlotte.jsx'
+import HistoriqueGps from '../pages/HistoriqueGps.jsx'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -191,6 +193,8 @@ export function AppRouter() {
       <Route path="/suivi-paiements" element={<PrivateRoute><SuiviPaiements /></PrivateRoute>} />
       <Route path="/imports" element={<PrivateRoute><Imports /></PrivateRoute>} />
       <Route path="/remunerations" element={<PrivateRoute><Remunerations /></PrivateRoute>} />
+      <Route path="/suivi-flotte" element={<PrivateRoute><SuiviFlotte /></PrivateRoute>} />
+      <Route path="/suivi-flotte/trajet/:id" element={<PrivateRoute><HistoriqueGps /></PrivateRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )

@@ -3,7 +3,7 @@
 Prerequis : base de recette recreee (tools/reset_recette.php) puis migration 001.
 Usage : python3 test_acces.py
 """
-import json, os, subprocess, sys
+import datetime, json, os, subprocess, sys
 from client import call, login, reset_tokens
 
 BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,8 +44,8 @@ def prepare():
     call('PUT', '/crud.php?module=eleves', {'id': 3, 'circuit_id': ca}, who=admin)
     call('PUT', '/crud.php?module=eleves', {'id': 4, 'circuit_id': cb}, who=admin)
     code, _ = call('POST', '/fleet-reaffecter.php', {'type': 'chauffeur', 'circuit_id': ca, 'nouveau_id': 4}, who=admin)
-    ta = call('POST', '/crud.php?module=trajets', {'circuit_id': ca, 'date_trajet': '2026-09-25', 'statut': 'planifie'}, who=admin)[1]['id']
-    tb = call('POST', '/crud.php?module=trajets', {'circuit_id': cb, 'date_trajet': '2026-09-25', 'statut': 'planifie'}, who=admin)[1]['id']
+    ta = call('POST', '/crud.php?module=trajets', {'circuit_id': ca, 'date_trajet': datetime.date.today().isoformat(), 'statut': 'planifie'}, who=admin)[1]['id']
+    tb = call('POST', '/crud.php?module=trajets', {'circuit_id': cb, 'date_trajet': datetime.date.today().isoformat(), 'statut': 'planifie'}, who=admin)[1]['id']
     # Parent sans aucun enfant lie
     sql("INSERT INTO users (id, ecole_id, name, email, password_hash, status) SELECT 7, 2, 'Parent Sans Enfant', 'parent2@test.local', password_hash, 'active' FROM users WHERE id = 3")
     sql("INSERT INTO user_roles (user_id, role_id, ecole_id) SELECT 7, id, 2 FROM roles WHERE role_key = 'parent'")

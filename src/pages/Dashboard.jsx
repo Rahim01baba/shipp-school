@@ -214,6 +214,11 @@ export default function Dashboard() {
               Modeles de contrat
             </Link>
           )}
+          {can('suivi_gps', 'can_read') && (
+            <Link to="/suivi-flotte" className="module-link">
+              Suivi flottes (GPS)
+            </Link>
+          )}
           {can('trajets', 'can_read') && (
             <Link to="/trajets" className="module-link">
               Trajets

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import EditeurCarteCircuit from '../components/EditeurCarteCircuit.jsx'
 
 // Eleves affectes au circuit, avec arret de montee et de depose (lot 2).
 function ElevesDuCircuit({ circuitId, etapes }) {
@@ -190,12 +191,13 @@ export default function CircuitDetail() {
   const [error, setError] = useState(null)
   const [form, setForm] = useState({ nom: '', ordre: '', heure_estimee: '' })
   const [saving, setSaving] = useState(false)
+  const [onglet, setOnglet] = useState('infos')
 
   const canCreateEtape = can('etapes', 'can_create')
   const canDeleteEtape = can('etapes', 'can_delete')
 
-  async function load() {
-    setLoading(true)
+  async function load(silencieux = false) {
+    if (silencieux !== true) setLoading(true)
     setError(null)
     try {
       const [circuitsRes, etapesRes] = await Promise.all([
@@ -273,17 +275,27 @@ export default function CircuitDetail() {
   }
 
   return (
-    <div className="page">
-      <p>
-        <Link to="/modules/circuits">&larr; Circuits</Link>
-      </p>
-      <h1>{circuit.nom}</h1>
+    <div className="g-page">
+      <Link className="g-retour" to="/modules/circuits">← Circuits</Link>
+      <header className="g-entete">
+        <div>
+          <h1>Circuit : {circuit.nom}</h1>
+          <p className="g-sous-titre">{[circuit.vehicule && `Véhicule ${circuit.vehicule}`, circuit.statut].filter(Boolean).join(' · ')}</p>
+        </div>
+      </header>
       {error && <p className="error-banner">{error}</p>}
-      <p>{circuit.description}</p>
-      <p>Vehicule : {circuit.vehicule || '-'}</p>
-      <p>Statut : {circuit.statut}</p>
-      <CircuitType circuit={circuit} onSaved={load} />
+      <div className="g-onglets" role="tablist">
+        <button type="button" role="tab" aria-selected={onglet === 'infos'} onClick={() => setOnglet('infos')}>Informations</button>
+        {can('etapes', 'can_read') && <button type="button" role="tab" aria-selected={onglet === 'carte'} onClick={() => setOnglet('carte')}>Carte</button>}
+        <button type="button" role="tab" aria-selected={onglet === 'eleves'} onClick={() => setOnglet('eleves')}>Élèves</button>
+      </div>
 
+      {onglet === 'infos' && (
+        <>
+          {circuit.description && <p>{circuit.description}</p>}
+          <p>Vehicule : {circuit.vehicule || '-'}</p>
+          <p>Statut : {circuit.statut}</p>
+          <CircuitType circuit={circuit} onSaved={load} />
       <h2>Etapes (ordre du trajet)</h2>
       {etapes.length === 0 && <p>Aucune etape definie pour ce circuit.</p>}
       {etapes.length > 0 && (
@@ -301,8 +313,6 @@ export default function CircuitDetail() {
           ))}
         </ol>
       )}
-
-      <ElevesDuCircuit circuitId={id} etapes={etapes} />
 
       {canCreateEtape && (
         <form onSubmit={addEtape} className="module-form">
@@ -334,6 +344,15 @@ export default function CircuitDetail() {
           </div>
         </form>
       )}
+        </>
+      )}
+
+      {onglet === 'carte' && can('etapes', 'can_read') && (
+        <EditeurCarteCircuit circuitId={id} peutModifier={can('etapes', 'can_edit')} peutCreer={canCreateEtape} peutSupprimer={canDeleteEtape}
+          peutVoirEleves={can('eleve_affectations', 'can_read')} onSaved={() => load(true)} />
+      )}
+
+      {onglet === 'eleves' && <ElevesDuCircuit circuitId={id} etapes={etapes} />}
     </div>
   )
 }

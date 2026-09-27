@@ -66,7 +66,8 @@ require_once __DIR__ . '/lib/transport.php';
 function v5_passage(PDO $pdo, array $trajet, array $etape): ?int
 {
 $ecart = null;
-if (!empty($etape['heure_estimee'])) {
+// Les heures estimees des arrets sont celles du matin : pas de calcul d'ecart au retour.
+if (!empty($etape['heure_estimee']) && ($trajet['sens'] ?? null) !== 'retour') {
 $prevu = strtotime($trajet['date_trajet'] . ' ' . $etape['heure_estimee']);
 $ecart = (int) round((time() - $prevu) / 60);
 }
@@ -90,7 +91,8 @@ return [
 ];
 }
 
-$etapesStmt = $pdo->prepare('SELECT * FROM etapes WHERE circuit_id = ? ORDER BY ordre ASC');
+// Ordre de parcours : matin (aller) ordre croissant, soir (retour) ordre inverse.
+$etapesStmt = $pdo->prepare('SELECT * FROM etapes WHERE circuit_id = ? ORDER BY ordre ' . (($trajet['sens'] ?? null) === 'retour' ? 'DESC' : 'ASC'));
 $etapesStmt->execute([$trajet['circuit_id']]);
 $etapes = $etapesStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -122,6 +124,38 @@ http_response_code(400);
 echo json_encode(['message' => 'Ce circuit ne possede aucune etape']);
 exit;
 }
+// Demarrage avec suivi GPS (ecran chauffeur) : le chauffeur doit etre celui du
+// trajet et un vehicule doit lui etre affecte, sinon la course ne demarre pas.
+$avecGps = !empty($input['gps']);
+if ($avecGps) {
+if (!$v5) {
+http_response_code(400);
+echo json_encode(['message' => 'Suivi GPS indisponible sur ce serveur']);
+exit;
+}
+$moi = authz_my_chauffeur_id($pdo, $ctx);
+if (!$moi) {
+http_response_code(403);
+echo json_encode(['message' => 'Seul le chauffeur peut demarrer une course avec suivi GPS']);
+exit;
+}
+if (!empty($trajet['chauffeur_id']) && (int) $trajet['chauffeur_id'] !== $moi) {
+http_response_code(403);
+echo json_encode(['message' => "Ce trajet est attribue a un autre chauffeur"]);
+exit;
+}
+$vPrevu = (int) ($trajet['vehicle_id'] ?? 0) ?: chauffeur_vehicle_on($pdo, $moi, $trajet['date_trajet']);
+if (!$vPrevu) {
+$cv = $pdo->prepare('SELECT vehicule_id FROM circuits WHERE id = ?');
+$cv->execute([(int) $trajet['circuit_id']]);
+$vPrevu = (int) $cv->fetchColumn() ?: null;
+}
+if (!$vPrevu) {
+http_response_code(400);
+echo json_encode(['message' => "Aucun vehicule ne vous est affecte : contactez le gestionnaire de flotte avant de demarrer"]);
+exit;
+}
+}
 $premiereEtapeId = $etapes[0]['id'];
 $upd = $pdo->prepare("UPDATE trajets SET statut = 'en_cours', etape_courante_id = ?, heure_debut = NOW() WHERE id = ?");
 $upd->execute([$premiereEtapeId, $trajetId]);
@@ -138,14 +172,15 @@ $pdo->prepare('UPDATE trajets SET chauffeur_id = ?, vehicle_id = ? WHERE id = ?'
 $trajet['chauffeur_id'] = $chauffeurId;
 $trajet['vehicle_id'] = $vehicleId;
 $base = v5_ctx($trajet) + ['cree_par' => (int) $authUser['sub']];
-transport_event($pdo, 'TRIP_STARTED', $base);
+transport_event($pdo, 'TRIP_STARTED', $base + ($avecGps ? ['details' => 'Suivi GPS active'] : []));
 v5_passage($pdo, $trajet, $etapes[0]);
 transport_event($pdo, 'ARRIVED_AT_STOP', $base + ['etape_id' => (int) $etapes[0]['id']]);
 foreach (trajet_expected_students($pdo, $trajet) as $el) {
 notify_parents($pdo, (int) $el['eleve_id'], 'Trajet demarre', 'Le vehicule de ' . trim($el['prenom'] . ' ' . $el['nom']) . ' a demarre son trajet.', 'TRIP_STARTED', $base);
 }
 }
-echo json_encode(['message' => 'ok', 'statut' => 'en_cours', 'etape_courante_id' => $premiereEtapeId]);
+echo json_encode(['message' => 'ok', 'statut' => 'en_cours', 'etape_courante_id' => $premiereEtapeId,
+'vehicle_id' => isset($trajet['vehicle_id']) && $trajet['vehicle_id'] ? (int) $trajet['vehicle_id'] : null, 'gps' => $avecGps]);
 exit;
 }
 
