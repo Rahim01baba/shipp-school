@@ -403,3 +403,16 @@ label > span:first-child { font-weight: 600; }
 .titre-icone { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
 .titre-icone > .icon { color: var(--primary); }
 .titre-icone .badge { font-size: 0.78rem; }
+
+/* ---------- Fenetre modale (reinitialisation du mot de passe) ---------- */
+.modale-fond { position: fixed; inset: 0; z-index: 150; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.modale { width: min(28rem, 100%); background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 1.5rem; animation: apparaitre 180ms ease both; }
+.modale h2 { margin: 0 0 0.25rem; }
+.modale .texte-discret { margin: 0 0 1rem; }
+.champ { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.9rem; }
+.champ > span { font-size: 0.85rem; font-weight: 700; }
+.champ input { width: 100%; }
+.champ small { font-size: 0.78rem; }
+.champ-case { display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; margin-bottom: 1rem; }
+.modale-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.5rem; }
+.lien-mdp { display: flex; width: fit-content; margin-top: 0.35rem; margin-bottom: 0.35rem; padding: 0 0.4rem; min-height: 1.7rem; font-size: 0.78rem; color: var(--primary); }
