@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 import { api } from '../api/client.js'
+import ReinitMotDePasse from '../components/ReinitMotDePasse.jsx'
 
 /**
  * Gestion des droits — matrice type Jenkins (Prompt 02) + rôles (Prompt 03).
@@ -23,6 +24,7 @@ export default function Rights() {
   const [error, setError] = useState(null)
   const [savingUserId, setSavingUserId] = useState(null)
   const [savingRoleId, setSavingRoleId] = useState(null)
+  const [reinit, setReinit] = useState(null)
   const emptyNewUser = { name: '', email: '', telephone: '', password: '', role_key: '' }
   const [newUser, setNewUser] = useState(emptyNewUser)
   // Roles attribues aux utilisateurs (roles.php) : { [userId]: ['parent', ...] }
@@ -277,6 +279,7 @@ export default function Rights() {
                 <td className="col-user">
                   <div className="user-name">{u.name}</div>
                   <div className="email">{u.email || u.telephone || ''}</div>
+                  <button type="button" className="btn btn-ghost btn-sm lien-mdp" onClick={() => setReinit(u)}>Réinitialiser le mot de passe</button>
                   {rolesAvailable && (
                     <select
                       className="user-role-select"
@@ -373,6 +376,7 @@ export default function Rights() {
         </select>
         <button type="submit">Ajouter</button>
       </form>
+      {reinit && <ReinitMotDePasse utilisateur={reinit} onFermer={() => setReinit(null)} />}
     </div>
   )
 }
