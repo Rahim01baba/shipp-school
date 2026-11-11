@@ -12,6 +12,31 @@ let compteur = 0
 const cleNouvelle = () => `n${++compteur}`
 const round = (v) => Math.round(v * 1e7) / 1e7
 
+// Trace routier : on demande a un service OSRM (OpenStreetMap) l'itineraire le plus
+// court par les routes entre les arrets, au lieu d'une ligne droite. En cas d'echec
+// (service indisponible, hors ligne), on retombe sur la ligne droite : aucune regression.
+const OSRM_BASE = import.meta.env.VITE_OSRM_URL || 'https://router.project-osrm.org'
+const CACHE_ROUTE = new Map()
+async function itineraireRoutier(points) {
+  // points : [[lat, lng], ...] dans l'ordre du trajet. Retourne [[lat, lng], ...] ou null.
+  if (!points || points.length < 2) return null
+  const cle = points.map(([la, lo]) => `${la.toFixed(5)},${lo.toFixed(5)}`).join(';')
+  if (CACHE_ROUTE.has(cle)) return CACHE_ROUTE.get(cle)
+  const coords = points.map(([la, lo]) => `${lo},${la}`).join(';') // OSRM attend lng,lat
+  try {
+    const res = await fetch(`${OSRM_BASE}/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+    if (!res.ok) throw new Error(String(res.status))
+    const data = await res.json()
+    const geo = data?.routes?.[0]?.geometry?.coordinates
+    const trace = Array.isArray(geo) && geo.length > 1 ? geo.map(([lo, la]) => [la, lo]) : null
+    CACHE_ROUTE.set(cle, trace)
+    return trace
+  } catch {
+    CACHE_ROUTE.set(cle, null)
+    return null
+  }
+}
+
 export default function EditeurCarteCircuit({ circuitId, peutModifier, peutCreer, peutSupprimer, peutVoirEleves, onSaved }) {
   const [arrets, setArrets] = useState([])
   const [coordonnees, setCoordonnees] = useState(true)
@@ -22,6 +47,7 @@ export default function EditeurCarteCircuit({ circuitId, peutModifier, peutCreer
   const [erreur, setErreur] = useState(null)
   const [info, setInfo] = useState(null)
   const [charge, setCharge] = useState(false)
+  const [trace, setTrace] = useState(null)
   const nomRefs = useRef({})
 
   async function charger() {
@@ -46,6 +72,16 @@ export default function EditeurCarteCircuit({ circuitId, peutModifier, peutCreer
     }
   }
   useEffect(() => { charger() }, [circuitId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cle stable des arrets places, dans l'ordre : sert a (re)calculer l'itineraire routier.
+  const clePts = arrets.filter((a) => a.latitude != null).map((a) => `${a.latitude},${a.longitude}`).join(';')
+  useEffect(() => {
+    const pts = clePts ? clePts.split(';').map((s) => s.split(',').map(Number)) : []
+    if (pts.length < 2) { setTrace(null); return undefined }
+    let annule = false
+    itineraireRoutier(pts).then((geo) => { if (!annule) setTrace(geo) })
+    return () => { annule = true }
+  }, [clePts])
 
   const maj = (cle, champs) => {
     setArrets((l) => l.map((a) => (a.cle === cle ? { ...a, ...champs } : a)))
@@ -112,8 +148,11 @@ export default function EditeurCarteCircuit({ circuitId, peutModifier, peutCreer
 
   const { lignes, marqueurs, cadre } = useMemo(() => {
     const pts = arrets.filter((a) => a.latitude != null)
+    const parRoute = trace && trace.length > 1
     return {
-      lignes: pts.length > 1 ? [{ id: 'circuit', points: pts.map((a) => [a.latitude, a.longitude]), couleur: '#475569', epaisseur: 3, pointille: true, fleches: true, titre: 'Trajet aller' }] : [],
+      lignes: pts.length > 1 ? [parRoute
+        ? { id: 'circuit', points: trace, couleur: '#2563eb', epaisseur: 4, opacite: 0.9, titre: 'Trajet aller (par la route)' }
+        : { id: 'circuit', points: pts.map((a) => [a.latitude, a.longitude]), couleur: '#475569', epaisseur: 3, pointille: true, fleches: true, titre: 'Trajet aller' }] : [],
       marqueurs: arrets.map((a, i) => ({
         id: a.cle, lat: a.latitude, lng: a.longitude, type: estEcole(a.nom) ? 'ecole' : 'arret', texte: estEcole(a.nom) ? '🏫' : String(i + 1),
         couleur: estEcole(a.nom) ? undefined : '#16a34a', libelle: a.nom, titre: `${i + 1}. ${a.nom}`, selectionne: a.cle === sel, deplacable: peutModifier,
@@ -121,7 +160,7 @@ export default function EditeurCarteCircuit({ circuitId, peutModifier, peutCreer
       })),
       cadre: pts.map((a) => [a.latitude, a.longitude]),
     }
-  }, [arrets, sel, peutModifier]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [arrets, sel, peutModifier, trace]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!charge && !erreur) return <p className="g-vide">Chargement de la carte...</p>
   if (!coordonnees) return <p className="g-vide">Les positions GPS des arrêts ne sont pas activées sur le serveur.</p>
