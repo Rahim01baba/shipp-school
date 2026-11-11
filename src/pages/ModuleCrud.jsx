@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { MODULES } from '../config/modules.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import Icon from '../components/Icon.jsx'
+import StatutBadge from '../components/StatutBadge.jsx'
 
 /**
  * Page CRUD generique — pilotee par la config MODULES.
@@ -26,6 +28,7 @@ export default function ModuleCrud() {
   const [form, setForm] = useState(moduleDef ? emptyForm(moduleDef.fields) : {})
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [formOuvert, setFormOuvert] = useState(false)
 
   const canRead = can(moduleKey, 'can_read')
   const canCreate = can(moduleKey, 'can_create')
@@ -75,6 +78,7 @@ export default function ModuleCrud() {
   useEffect(() => {
     setForm(moduleDef ? emptyForm(moduleDef.fields) : {})
     setEditingId(null)
+    setFormOuvert(false)
     if (accessLoading) return
     if (canRead) {
       load(moduleDef)
@@ -119,11 +123,14 @@ export default function ModuleCrud() {
     })
     setForm(next)
     setEditingId(row.id)
+    setFormOuvert(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function cancelEdit() {
     setForm(emptyForm(moduleDef.fields))
     setEditingId(null)
+    setFormOuvert(false)
   }
 
   async function submit(e) {
@@ -160,19 +167,25 @@ export default function ModuleCrud() {
 
   return (
     <div className="page">
-      <p>
-        <Link to="/">&larr; Tableau de bord</Link>
-      </p>
-      <h1>{moduleDef.label}</h1>
-      {canExport && rows.length > 0 && (
-        <button type="button" onClick={exportCsv}>
-          Exporter CSV
-        </button>
-      )}
+      <header className="page-header">
+        <div>
+          <h1>{moduleDef.label}</h1>
+          <p className="page-header-sous">{loading ? 'Chargement...' : `${rows.length} enregistrement${rows.length > 1 ? 's' : ''}`}</p>
+        </div>
+        <div className="section-tete">
+          {canExport && rows.length > 0 && (
+            <button type="button" className="btn btn-secondary" onClick={exportCsv}><Icon name="upload" size={18} />Exporter CSV</button>
+          )}
+          {canCreate && !editingId && (
+            <button type="button" className="btn btn-primary" aria-expanded={formOuvert} onClick={() => setFormOuvert(!formOuvert)}><Icon name={formOuvert ? 'close' : 'plus'} size={18} />{formOuvert ? 'Fermer' : 'Ajouter'}</button>
+          )}
+        </div>
+      </header>
       {error && <p className="error-banner">{error}</p>}
 
-      {showForm && (
+      {showForm && (formOuvert || editingId) && (
         <form onSubmit={submit} className="module-form">
+          <h2 className="form-titre">{editingId ? `Modifier` : `Nouvel enregistrement`}</h2>
           {moduleDef.fields.map((f) => (
             <label key={f.key} className="module-form-field">
               <span>{f.label}</span>
@@ -195,20 +208,18 @@ export default function ModuleCrud() {
             </label>
           ))}
           <div className="module-form-actions">
+            <button type="button" className="btn btn-ghost" onClick={cancelEdit}>
+              Annuler
+            </button>
             <button type="submit" className={domainClass} disabled={saving}>
               {editingId ? 'Mettre a jour' : 'Ajouter'}
             </button>
-            {editingId && (
-              <button type="button" onClick={cancelEdit}>
-                Annuler
-              </button>
-            )}
           </div>
         </form>
       )}
 
       {loading ? (
-        <p>Chargement...</p>
+        <div className="module-table-wrap"><div className="empty-state"><span className="spinner" aria-hidden="true" />Chargement...</div></div>
       ) : (
         <div className="module-table-wrap">
           <table className="module-table">
@@ -224,7 +235,7 @@ export default function ModuleCrud() {
               {rows.map((row) => (
                 <tr key={row.id}>
                   {moduleDef.fields.map((f) => (
-                    <td key={f.key}>{row[f.key]}</td>
+                    <td key={f.key}>{f.key === 'statut' ? <StatutBadge valeur={row[f.key]} /> : f.key === moduleDef.fields[0].key ? <strong>{row[f.key]}</strong> : row[f.key]}</td>
                   ))}
                   {showActionsColumn && (
                     <td className="module-table-actions">
@@ -264,8 +275,9 @@ export default function ModuleCrud() {
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={moduleDef.fields.length + (showActionsColumn ? 1 : 0)}>
-                    Aucune donnee.{canCreate ? ' Ajoutes-en une ci-dessus.' : ''}
+                  <td className="module-table-vide" colSpan={moduleDef.fields.length + (showActionsColumn ? 1 : 0)}>
+                    <strong>Aucun enregistrement pour le moment.</strong>
+                    {canCreate && <><br /><button type="button" className="btn btn-secondary btn-sm" onClick={() => setFormOuvert(true)}><Icon name="plus" size={16} />Ajouter le premier</button></>}
                   </td>
                 </tr>
               )}

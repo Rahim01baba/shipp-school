@@ -182,7 +182,7 @@ export default function MonActivite() {
                     <div className="ma-arret-head">
                       <span className="ma-arret-nom">{a.nom}</span>
                       <span className="ma-muted">
-                        {a.heure_estimee ? `prevu ${a.heure_estimee}` : ''}
+                        {a.heure_estimee && t.sens !== 'retour' ? `prevu ${a.heure_estimee}` : ''}
                         {a.passage && ` · passe ${heure(a.passage.heure_reelle)}`}
                         {a.passage && a.passage.ecart_minutes !== null && Number(a.passage.ecart_minutes) > 0 && ` (+${a.passage.ecart_minutes} min)`}
                       </span>

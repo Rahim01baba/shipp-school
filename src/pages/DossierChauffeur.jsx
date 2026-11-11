@@ -16,7 +16,7 @@ const TYPES_DOC = {
 }
 const ETATS_DOC = { a_verifier: 'A verifier', valide: 'Valide', refuse: 'Refuse', remplace: 'Remplace', expire: 'Expire', expire_bientot: 'Expire bientot' }
 const STATUTS_CONTRAT = { brouillon: 'Brouillon', actif: 'Actif', suspendu: 'Suspendu', termine: 'Termine', resilie: 'Resilie' }
-const NIVEAUX = { critique: 'Critique', alerte: 'Alerte', info: 'Info' }
+const NIVEAUX = { critique: 'CRITIQUE', alerte: 'ATTENTION', info: 'INFORMATION' }
 
 function fcfa(v) {
   return v === null || v === undefined || v === '' ? '-' : `${Number(v).toLocaleString('fr-FR')} FCFA`
@@ -299,7 +299,7 @@ export function OngletContrats({ chauffeur }) {
 }
 
 // ------------------------------------------------------------------ Alertes
-export function ListeAlertes({ chauffeurId }) {
+export function ListeAlertes({ chauffeurId, avecResume = false }) {
   const [alertes, setAlertes] = useState(null)
   const [error, setError] = useState(null)
 
@@ -310,9 +310,18 @@ export function ListeAlertes({ chauffeurId }) {
   }, [chauffeurId])
 
   if (error) return <p className="error-banner">{error}</p>
-  if (!alertes) return <p>Chargement...</p>
-  if (alertes.length === 0) return <p>Aucune alerte.</p>
+  if (!alertes) return <p className="texte-discret"><span className="spinner" aria-hidden="true" /> Chargement...</p>
+  if (alertes.length === 0) return <div className="card empty-state"><strong>Aucune alerte</strong><p>Documents, contrats, véhicules et incidents sont en ordre.</p></div>
+  const nb = (n) => alertes.filter((a) => a.niveau === n).length
   return (
+    <>
+    {avecResume && (
+      <div className="alertes-resume" role="status">
+        <span className="badge badge-danger">{nb('critique')} critique(s)</span>
+        <span className="badge badge-warning">{nb('alerte')} à surveiller</span>
+        <span className="badge badge-info">{nb('info')} information(s)</span>
+      </div>
+    )}
     <ul className="dc-alertes">
       {alertes.map((a, n) => (
         <li key={n} className={`dc-alerte dc-alerte-${a.niveau}`}>
@@ -324,6 +333,7 @@ export function ListeAlertes({ chauffeurId }) {
         </li>
       ))}
     </ul>
+    </>
   )
 }
 

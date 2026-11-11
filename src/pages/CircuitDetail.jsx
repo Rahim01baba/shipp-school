@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import EditeurCarteCircuit from '../components/EditeurCarteCircuit.jsx'
+import StatutBadge from '../components/StatutBadge.jsx'
+import Icon from '../components/Icon.jsx'
 
 // Eleves affectes au circuit, avec arret de montee et de depose (lot 2).
 function ElevesDuCircuit({ circuitId, etapes }) {
@@ -279,8 +281,8 @@ export default function CircuitDetail() {
       <Link className="g-retour" to="/modules/circuits">← Circuits</Link>
       <header className="g-entete">
         <div>
-          <h1>Circuit : {circuit.nom}</h1>
-          <p className="g-sous-titre">{[circuit.vehicule && `Véhicule ${circuit.vehicule}`, circuit.statut].filter(Boolean).join(' · ')}</p>
+          <h1 className="titre-icone"><Icon name="map" size={26} />{circuit.nom} <StatutBadge valeur={circuit.statut} /></h1>
+          <p className="g-sous-titre">Véhicule : <strong>{circuit.vehicule || 'non renseigné'}</strong>{circuit.type_circuit === 'activite' && circuit.activite ? ` · Navette ${circuit.activite}` : ''}</p>
         </div>
       </header>
       {error && <p className="error-banner">{error}</p>}
@@ -303,7 +305,7 @@ export default function CircuitDetail() {
           {etapes.map((e) => (
             <li key={e.id} className="etapes-list-item">
               <span className="etapes-list-nom">{e.nom}</span>
-              {e.heure_estimee && <span className="etapes-list-heure">{e.heure_estimee}</span>}
+              {e.heure_estimee && <span className="etapes-list-heure">{String(e.heure_estimee).slice(0, 5)}</span>}
               {canDeleteEtape && (
                 <button type="button" className="etapes-list-remove" onClick={() => { if (window.confirm('Supprimer cet arret ?')) removeEtape(e.id) }}>
                   Supprimer
