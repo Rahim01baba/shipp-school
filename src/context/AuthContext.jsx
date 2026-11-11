@@ -83,6 +83,7 @@ export function AuthProvider({ children }) {
         chauffeurId: access.chauffeur_id,
         scopeOf,
         accessLoading,
+        refreshAccess: loadPermissions,
         can,
       }}
     >

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation, Navigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 
@@ -54,6 +54,7 @@ export default function Login() {
         <button type="submit" disabled={submitting}>
           {submitting ? 'Connexion...' : 'Se connecter'}
         </button>
+        <p className="login-inscription">Parent ? <Link to="/inscription">Créer mon compte</Link></p>
       </form>
     </div>
   )

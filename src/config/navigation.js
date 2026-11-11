@@ -4,8 +4,10 @@
 
 const bureau = (scopeOf, m) => ['GLOBAL', 'SCHOOL'].includes(scopeOf(m))
 
-export function construireMenu({ can, isAdmin, scopeOf, chauffeurId, parentEleveIds }) {
+export function construireMenu({ can, isAdmin, scopeOf, chauffeurId, parentEleveIds, roles }) {
   const parent = parentEleveIds && parentEleveIds.length > 0
+  // Compte parent (inscription autonome) : peut ajouter un enfant par son code parent.
+  const estParent = (roles || []).some((r) => (r.role_key || r) === 'parent')
   const groupes = [
     {
       cle: 'accueil', titre: 'Accueil', items: [
@@ -17,6 +19,7 @@ export function construireMenu({ can, isAdmin, scopeOf, chauffeurId, parentEleve
         { to: '/mon-activite', label: 'Mon trajet', icon: 'bus', ok: !!chauffeurId },
         { to: chauffeurId ? `/chauffeurs/${chauffeurId}` : '/', label: 'Mon dossier', icon: 'file', ok: !!chauffeurId, exact: true },
         { to: '/suivi-enfants', label: 'Suivi de mes enfants', icon: 'student', ok: parent },
+        { to: '/ajouter-enfant', label: 'Ajouter mon enfant', icon: 'plus', ok: estParent },
       ],
     },
     {
@@ -44,6 +47,7 @@ export function construireMenu({ can, isAdmin, scopeOf, chauffeurId, parentEleve
       cle: 'eleves', titre: 'Élèves', icon: 'student', items: [
         { to: '/modules/eleves', label: 'Élèves', icon: 'student', ok: can('eleves', 'can_read'), aussi: ['/eleves/'] },
         { to: '/parents', label: 'Parents (comptes)', icon: 'users', ok: isAdmin },
+        { to: '/codes-parents', label: 'Codes parents', icon: 'shield', ok: isAdmin },
         { to: '/modules/parents_eleves', label: 'Parents (fiches)', icon: 'users', ok: can('parents_eleves', 'can_read') },
         { to: '/abonnements', label: 'Abonnements', icon: 'file', ok: can('abonnements', 'can_read') },
         { to: '/modules/ecoles', label: 'Écoles', icon: 'school', ok: can('ecoles', 'can_read') },
