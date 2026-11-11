@@ -34,6 +34,9 @@ import Imports from '../pages/Imports.jsx'
 import Remunerations from '../pages/Remunerations.jsx'
 import SuiviFlotte from '../pages/SuiviFlotte.jsx'
 import HistoriqueGps from '../pages/HistoriqueGps.jsx'
+import Inscription from '../pages/Inscription.jsx'
+import AjouterEnfant from '../pages/AjouterEnfant.jsx'
+import CodesParents from '../pages/CodesParents.jsx'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -60,6 +63,7 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/inscription" element={<Inscription />} />
       <Route
         path="/"
         element={
@@ -196,6 +200,8 @@ export function AppRouter() {
       <Route path="/remunerations" element={<PrivateRoute><Remunerations /></PrivateRoute>} />
       <Route path="/suivi-flotte" element={<PrivateRoute><SuiviFlotte /></PrivateRoute>} />
       <Route path="/suivi-flotte/trajet/:id" element={<PrivateRoute><HistoriqueGps /></PrivateRoute>} />
+      <Route path="/ajouter-enfant" element={<PrivateRoute><AjouterEnfant /></PrivateRoute>} />
+      <Route path="/codes-parents" element={<AdminRoute><CodesParents /></AdminRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
